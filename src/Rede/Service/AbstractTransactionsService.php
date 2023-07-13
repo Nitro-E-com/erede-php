@@ -100,7 +100,9 @@ abstract class AbstractTransactionsService extends AbstractService
             throw new RedeException(
                 $this->transaction->getReturnMessage(),
                 $this->transaction->getReturnCode(),
-                $previous
+                $previous,
+                $response,
+                $this->transaction
             );
         }
 
