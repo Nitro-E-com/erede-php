@@ -95,7 +95,7 @@ class Authorization
     private $tid;
 
     /**
-     * @var array
+     * @var object
      */
     private $brand;
 
@@ -424,17 +424,17 @@ class Authorization
     }
 
     /**
-     * @return array
+     * @return object
      */
-    public function getBrand(): ?array
+    public function getBrand()
     {
         return $this->brand;
     }
 
     /**
-     * @param array $brand
+     * @param object $brand
      */
-    public function setBrand(array $brand): void
+    public function setBrand($brand): void
     {
         $this->brand = $brand;
     }
