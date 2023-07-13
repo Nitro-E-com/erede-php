@@ -95,6 +95,11 @@ class Authorization
     private $tid;
 
     /**
+     * @var array
+     */
+    private $brand;
+
+    /**
      * @return string
      */
     public function getAffiliation()
@@ -416,5 +421,21 @@ class Authorization
     {
         $this->tid = $tid;
         return $this;
+    }
+
+    /**
+     * @return array
+     */
+    public function getBrand(): ?array
+    {
+        return $this->brand;
+    }
+
+    /**
+     * @param array $brand
+     */
+    public function setBrand(array $brand): void
+    {
+        $this->brand = $brand;
     }
 }
