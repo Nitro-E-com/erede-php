@@ -2,23 +2,23 @@
 
 SDK de integração eRede
 
-# Funcionalidades
+## Funcionalidades
 
 Este SDK possui as seguintes funcionalidades:
-* Autorização
-* Captura
-* Consultas
-* Cancelamento
-* 3DS2
-* Zero dollar
-* iata
-* MCC dinâmico.
 
-# Instalação
+- Autorização
+- Captura
+- Consultas
+- Cancelamento
+- 3DS2
+- Zero dollar
+- iata
+- MCC dinâmico.
+- PIX
 
 ## Dependências
 
-* PHP >= 8.1
+- PHP >= 8.2
 
 ## Instalando o SDK
 
@@ -29,50 +29,42 @@ Se já possui um arquivo `composer.json`, basta adicionar a seguinte dependênci
 "require": {
     "developersrede/erede-php": "*"
 }
-}
-
 ```
 
 Com a dependência adicionada ao `composer.json`, basta executar:
 
-```
+```bash
 composer install
 ```
 
 Alternativamente, você pode executar diretamente em seu terminal:
 
-```
+```bash
 composer require "developersrede/erede-php"
 ```
 
-# Testes
+## Comandos
+
+- Rodar todos os testes e PHPStan `composer test`
+- Rodar todos os testes `composer phpunit`
+- Testes unitários `composer test:unit`
+- Testes integração `composer test:e2e`
+- PHPStan `composer phpstan`
+- PHP-CS-Fixer verify `composer format:check`
+- PHP-CS-Fixer fix `composer format:fix`
+
+## Testes
 
 O SDK utiliza PHPUnit com TestDox para os testes. Para executá-los em ambiente local, você precisa exportar
 as variáveis de ambiente `REDE_PV` e `REDE_TOKEN` com suas credenciais da API. Feito isso, basta rodar:
 
-```
+```bash
 export REDE_PV=1234
 export REDE_TOKEN=5678
-
-./tests
+export REDE_DEBUG=0
 ```
 
-Os testes também podem ser executados através de um container com a configuração ideal para o projeto. Para isso, basta
-fazer:
-
-```
-docker build . -t erede-docker
-docker run -e REDE_PV='1234' -e REDE_TOKEN='5678' erede-docker
-```
-````
-Caso necessário, o SDK possui a possibilidade de logs de depuração que podem ser utilizados ao executar os testes. Para isso, 
-basta exportar a variável de ambiente `REDE_DEBUG` com o valor 1:
-
-```
-export REDE_DEBUG=1
-```
-
-# Utilizando
+Ou copie o arquivo `tests/config/env.test.php.example` para `tests/config/env.test.php` e adicione as suas credenciais
 
 ## Autorizando uma transação
 
@@ -130,6 +122,7 @@ if ($transaction->getReturnCode() == '00') {
 ```
 
 ## Adiciona configuração de parcelamento
+
 ```php
 <?php
 // Configuração da loja em modo produção
@@ -351,13 +344,13 @@ $transaction = (new Transaction(25, 'pedido' . time()))->debitCard(
 // Configura o 3dSecure para autenticação
 $transaction->threeDSecure(
     new Device(
-        ColorDepth: 1,
-        DeviceType3ds: 'BROWSER',
-        JavaEnabled: false,
-        Language: 'BR',
-        ScreenHeight: 500,
-        ScreenWidth: 500,
-        TimeZoneOffset: 3
+        colorDepth: 1,
+        deviceType3ds: 'BROWSER',
+        javaEnabled: false,
+        language: 'BR',
+        screenHeight: 500,
+        screenWidth: 500,
+        timeZoneOffset: 3
     )
 );
 $transaction->addUrl('https://redirecturl.com/3ds/success', Url::THREE_D_SECURE_SUCCESS);
@@ -369,3 +362,26 @@ if ($transaction->getReturnCode() == '220') {
     printf("Redirecione o cliente para \"%s\" para autenticação\n", $transaction->getThreeDSecure()->getUrl());
 }
 ```
+
+## Transação com PIX
+
+```php
+<?php
+// Configura a transação para o PIX e passa a data de expiração
+$transaction = (new Transaction(200.99, 'pedido' . time()))->createQrCode(new \DateTimeImmutable('+ 1 hour'));
+
+$transaction = (new eRede($store))->create($transaction);
+
+if ($transaction->getReturnCode() == '00') {
+    printf(
+        "Transação criada com sucesso; tid=%s, qrCodeData=%s, qrCodeImage=%s\n",
+        $transaction->getTid(), $transaction->getQrCode()->getQrCodeData(), $transaction->getQrCode()->getQrCodeImage()
+    );
+}
+```
+
+## Observações
+
+- Ao criar uma transação com `$transaction = (new eRede($store))->create($transaction)` não vai retornar o campo `authorization`, para retornar o campo é preciso fazer uma consulta `$transaction = (new eRede($store))->get('TID123')`
+- O campo `$transaction->getAuthorizationCode()` não está retornando nada, use `$transaction->getBrand()?->getAuthorizationCode()` ou `$transaction->getAuthorization()?->getBrand()?->getAuthorizationCode()`
+- Caso precise acessar o JSON original do response utilize `$transaction?->getHttpResponse()->getBody()`
