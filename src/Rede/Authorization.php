@@ -40,6 +40,8 @@ class Authorization
 
     private ?string $tid = null;
 
+    private ?string $txId = null;
+
     private ?Brand $brand = null;
 
     /**
@@ -305,6 +307,21 @@ class Authorization
 
         return $this;
     }
+
+    public function getTxId(): ?string
+    {
+        return $this->txId;
+    }
+
+    /**
+     * @return $this
+     */
+    public function setTxId(?string $txId): static
+    {
+        $this->txId = $txId;
+
+        return $this;
+    }    
 
     public function getBrand(): ?Brand
     {
