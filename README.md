@@ -311,6 +311,8 @@ $transaction->threeDSecure(
         screenWidth: 500,
         timeZoneOffset: 3
     ),
+    ThreeDSecure::DECLINE_ON_FAILURE,
+    userAgent: $browserUserAgent, // user-agent real do navegador do cliente
     billing: new BillingAddress(
         address: 'Rua Pedro Luiz',
         city: 'Guarulhos',
@@ -321,13 +323,22 @@ $transaction->threeDSecure(
         phoneNumber: '(11)91234-5678',
     ),
 );
+
+// Informe o IP real do cliente e o modo de resposta (ex.: 'event')
+$transaction->getThreeDSecure()
+    ->setIpAddress($ipv4)
+    ->setResponseMode('event');
+
 $transaction->addUrl('https://redirecturl.com/3ds/success', Url::THREE_D_SECURE_SUCCESS);
 $transaction->addUrl('https://redirecturl.com/3ds/failure', Url::THREE_D_SECURE_FAILURE);
 $transaction->addUrl('https://redirecturl.com/3ds/callback', Url::THREE_D_SECURE_CALLBACK);
 
 $transaction = $eRedeService->create($transaction);
 
-if ($transaction->getReturnCode() == '220') {
+// O código 220 indica solicitação de autenticação, NÃO aprovação financeira.
+// Redirecione o cliente, processe o retorno/callback e confirme o resultado
+// financeiro consultando a transação pelo TID ($eRedeService->get()).
+if ($transaction->isAuthenticationRequired()) {
     printf("Redirecione o cliente para \"%s\" para autenticação\n", $transaction->getThreeDSecure()->getUrl());
 }
 ```

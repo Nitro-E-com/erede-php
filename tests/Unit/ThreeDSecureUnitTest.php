@@ -135,4 +135,60 @@ class ThreeDSecureUnitTest extends BaseTestCase
         $this->assertIsArray($serialized['threeDSecure']['billing']);
         $this->assertSame('07151-385', $serialized['threeDSecure']['billing']['postalcode']);
     }
+
+    public function testShouldSerializeResponseModeAndIpAddress(): void
+    {
+        $transaction = (new Transaction(25, 'ref-3ds'))
+            ->debitCard('5277696455399733', '123', '01', 2030, 'John Snow')
+            ->threeDSecure(
+                new Device(deviceType3ds: 'BROWSER'),
+                ThreeDSecure::DECLINE_ON_FAILURE,
+                userAgent: 'Browser/1.0',
+            );
+
+        $threeDSecure = $transaction->getThreeDSecure();
+        $threeDSecure
+            ->setIpAddress('192.0.2.1')
+            ->setResponseMode('event');
+
+        $serialized = json_decode(json_encode($transaction) ?: '', true);
+
+        $this->assertSame('192.0.2.1', $serialized['threeDSecure']['ipAddress']);
+        $this->assertSame('event', $serialized['threeDSecure']['responseMode']);
+    }
+
+    public function testShouldNotSerializeResponseModeWhenNotSet(): void
+    {
+        $threeDSecure = new ThreeDSecure(new Device(deviceType3ds: 'BROWSER'));
+
+        $serialized = $threeDSecure->jsonSerialize();
+
+        $this->assertNull($threeDSecure->getResponseMode());
+        $this->assertArrayNotHasKey('responseMode', $serialized);
+    }
+
+    public function testShouldUnserializeResponseMode(): void
+    {
+        $threeDSecure = (new ThreeDSecure())->populate(
+            json_decode('{"responseMode": "event", "ipAddress": "192.0.2.1"}')
+        );
+
+        $this->assertSame('event', $threeDSecure->getResponseMode());
+        $this->assertSame('192.0.2.1', $threeDSecure->getIpAddress());
+    }
+
+    public function testShouldDeclareThreeDSecureCallbackUrlKind(): void
+    {
+        $this->assertSame('threeDSecureCallback', Url::THREE_D_SECURE_CALLBACK);
+
+        $transaction = (new Transaction(25, 'ref-3ds'))
+            ->addUrl('https://redirecturl.com/3ds/callback', Url::THREE_D_SECURE_CALLBACK);
+
+        $serialized = json_decode(json_encode($transaction) ?: '', true);
+
+        $this->assertContains(
+            ['url' => 'https://redirecturl.com/3ds/callback', 'kind' => 'threeDSecureCallback'],
+            $serialized['urls']
+        );
+    }
 }

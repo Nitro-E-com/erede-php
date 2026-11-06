@@ -41,6 +41,8 @@ class ThreeDSecure implements RedeSerializable
 
     private ?string $challengePreference = null;
 
+    private ?string $responseMode = null;
+
     private ?BillingAddress $billing = null;
 
     /**
@@ -249,6 +251,21 @@ class ThreeDSecure implements RedeSerializable
     public function setChallengePreference(?string $challengePreference): ThreeDSecure
     {
         $this->challengePreference = $challengePreference;
+
+        return $this;
+    }
+
+    public function getResponseMode(): ?string
+    {
+        return $this->responseMode;
+    }
+
+    /**
+     * @return $this
+     */
+    public function setResponseMode(string $responseMode): static
+    {
+        $this->responseMode = $responseMode;
 
         return $this;
     }

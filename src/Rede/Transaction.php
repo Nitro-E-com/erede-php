@@ -18,6 +18,10 @@ class Transaction implements RedeSerializable, RedeUnserializable
 
     public const ORIGIN_MASTERPASS = 6;
 
+    public const RETURN_CODE_SUCCESS = '00';
+
+    public const RETURN_CODE_AUTHENTICATION_REQUIRED = '220';
+
     private ?Additional $additional = null;
 
     private ?Authorization $authorization = null;
@@ -565,6 +569,11 @@ class Transaction implements RedeSerializable, RedeUnserializable
     public function getReturnCode(): ?string
     {
         return $this->returnCode;
+    }
+
+    public function isAuthenticationRequired(): bool
+    {
+        return self::RETURN_CODE_AUTHENTICATION_REQUIRED === $this->returnCode;
     }
 
     public function getReturnMessage(): ?string
